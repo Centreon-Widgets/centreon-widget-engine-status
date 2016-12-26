@@ -70,7 +70,7 @@ try {
     $widgetObj = new CentreonWidget($centreon, $db_centreon);
     $preferences = $widgetObj->getWidgetPreferences($widgetId);
     $autoRefresh = 0;
-    $autoRefresh = $preferences['autoRefresh'];
+    //$autoRefresh = $preferences['autoRefresh'];
 } catch (Exception $e) {
     echo $e->getMessage() . "<br/>";
     exit;
