@@ -80,20 +80,45 @@ $dataEx = array();
 $dataSth = array();
 $dataSts = array();
 $db = new CentreonDB("centstorage");
+$mainQueryParameters = [];
 
 $queryName = "Select T1.name, T1.instance_id as instance, T2.instance_id
-             FROM instances T1, hosts T2
-             WHERE T1.name like '".$preferences['poller']."';";
+             FROM instances T1, hosts T2";
 
-$res = $db->query($queryName);
+if (isset($preferences['poller']) && $preferences['poller']) {
+    $results = explode(',', $preferences['poller']);
+    $queryPoller = '';
+    foreach ($results as $result) {
+        if ($queryPoller != '') {
+            $queryPoller .= ', ';
+        }
+        $queryPoller .= ":id_" . $result;
+        $mainQueryParameters[] = [
+            'parameter' => ':id_' . $result,
+            'value' => (int)$result,
+            'type' => PDO::PARAM_INT
+        ];
+    }
+    $queryName .= " WHERE T1.instance_id IN (" . $queryPoller .")";
+}
+
+$res = $db->prepare($queryName);
+
+foreach ($mainQueryParameters as $parameter) {
+    $res->bindValue($parameter['parameter'], $parameter['value'], $parameter['type']);
+}
+unset($parameter, $mainQueryParameters);
+
+$res->execute();
+
 $idP = 0;
 
 while ($row = $res->fetchRow()) {
   $idP = $row['instance'];
 }
 
-$queryLat = "Select Max(T1.latency) as h_max, AVG(T1.latency) as h_moy, Max(T2.latency) as s_max, AVG(T2.latency) as s_moy 
-             from hosts T1, services T2  
+$queryLat = "Select Max(T1.latency) as h_max, AVG(T1.latency) as h_moy, Max(T2.latency) as s_max, AVG(T2.latency) as s_moy
+             from hosts T1, services T2
              where T1.instance_id = ".$idP." and T1.host_id = T2.host_id and T2.enabled = '1';";
 
 $res = $db->query($queryLat);
@@ -105,8 +130,8 @@ while ($row = $res->fetchRow()) {
   $dataLat[] = $row;
 }
 
-$queryEx = "Select Max(T1.execution_time) as h_max, AVG(T1.execution_time) as h_moy, Max(T2.execution_time) as s_max, AVG(T2.execution_time) as s_moy 
-            from hosts T1, services T2  
+$queryEx = "Select Max(T1.execution_time) as h_max, AVG(T1.execution_time) as h_moy, Max(T2.execution_time) as s_max, AVG(T2.execution_time) as s_moy
+            from hosts T1, services T2
             where T1.instance_id = ".$idP." and T1.host_id = T2.host_id and T2.enabled = '1';";
 
 $res = $db->query($queryEx);
@@ -125,9 +150,9 @@ $querySth = "Select SUM(CASE WHEN h.state = 1 and h.enabled = 1 and h.name not l
             From hosts h where h.instance_id = ".$idP.";";
 
 $querySts = "Select SUM(CASE WHEN s.state = 2 and s.enabled = 1 and h.name not like '%Module%' then 1 else 0 end) as Cri,
-                    SUM(CASE WHEN s.state = 1 and s.enabled = 1 and h.name not like '%Module%' then 1 else 0 end) as Wa, 
+                    SUM(CASE WHEN s.state = 1 and s.enabled = 1 and h.name not like '%Module%' then 1 else 0 end) as Wa,
                     SUM(CASE WHEN s.state = 0 and s.enabled = 1 and h.name not like '%Module%' then 1 else 0 end) as Ok,
-                    SUM(CASE WHEN s.state = 4 and s.enabled = 1 and h.name not like '%Module%' then 1 else 0 end) as Pend, 
+                    SUM(CASE WHEN s.state = 4 and s.enabled = 1 and h.name not like '%Module%' then 1 else 0 end) as Pend,
                     SUM(CASE WHEN s.state = 3 and s.enabled = 1 and h.name not like '%Module%' then 1 else 0 end) as Unk
              From services s, hosts h where h.host_id = s.host_id and h.instance_id = ".$idP.";";
 
