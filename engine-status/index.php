@@ -110,71 +110,71 @@ if (!empty($queryPoller)) {
             FROM hosts T1, services T2
             WHERE T1.instance_id IN (" . $queryPoller . ") AND T1.host_id = T2.host_id
             AND T2.enabled = '1';";
-}
 
-$res = $db->prepare($queryLat);
-$res2 = $db->prepare($queryEx);
-foreach ($mainQueryParameters as $parameter) {
-    $res->bindValue($parameter['parameter'], $parameter['value'], $parameter['type']);
-    $res2->bindValue($parameter['parameter'], $parameter['value'], $parameter['type']);
-}
-$res->execute();
-$res2->execute();
+    $res = $db->prepare($queryLat);
+    $res2 = $db->prepare($queryEx);
+    foreach ($mainQueryParameters as $parameter) {
+        $res->bindValue($parameter['parameter'], $parameter['value'], $parameter['type']);
+        $res2->bindValue($parameter['parameter'], $parameter['value'], $parameter['type']);
+    }
+    $res->execute();
+    $res2->execute();
 
-while ($row = $res->fetchRow()) {
-  $row['h_max'] = round($row['h_max'], 3);
-  $row['h_moy'] = round($row['h_moy'], 3);
-  $row['s_max'] = round($row['s_max'], 3);
-  $row['s_moy'] = round($row['s_moy'], 3);
-  $dataLat[] = $row;
-}
+    while ($row = $res->fetchRow()) {
+      $row['h_max'] = round($row['h_max'], 3);
+      $row['h_moy'] = round($row['h_moy'], 3);
+      $row['s_max'] = round($row['s_max'], 3);
+      $row['s_moy'] = round($row['s_moy'], 3);
+      $dataLat[] = $row;
+    }
 
-while ($row = $res2->fetchRow()) {
-  $row['h_max'] = round($row['h_max'], 3);
-  $row['h_moy'] = round($row['h_moy'], 3);
-  $row['s_max'] = round($row['s_max'], 3);
-  $row['s_moy'] = round($row['s_moy'], 3);
-  $dataEx[] = $row;
-}
+    while ($row = $res2->fetchRow()) {
+      $row['h_max'] = round($row['h_max'], 3);
+      $row['h_moy'] = round($row['h_moy'], 3);
+      $row['s_max'] = round($row['s_max'], 3);
+      $row['s_moy'] = round($row['s_moy'], 3);
+      $dataEx[] = $row;
+    }
 
-$querySth = "SELECT SUM(CASE WHEN h.state = 1 AND h.enabled = 1 AND h.name NOT LIKE '%Module%'
-            THEN 1 ELSE 0 END) AS Dow,
-            SUM(CASE WHEN h.state = 2 AND h.enabled = 1 AND h.name NOT LIKE '%Module%'
-            THEN 1 ELSE 0 END) AS Un,
-            SUM(CASE WHEN h.state = 0 AND h.enabled = 1 AND h.name NOT LIKE '%Module%'
-            THEN 1 ELSE 0 END) AS Up,
-            SUM(CASE WHEN h.state = 4 AND h.enabled = 1 AND h.name NOT LIKE '%Module%'
-            THEN 1 ELSE 0 END) AS Pend
-            FROM hosts h WHERE h.instance_id IN (" . $queryPoller . ");";
+    $querySth = "SELECT SUM(CASE WHEN h.state = 1 AND h.enabled = 1 AND h.name NOT LIKE '%Module%'
+                THEN 1 ELSE 0 END) AS Dow,
+                SUM(CASE WHEN h.state = 2 AND h.enabled = 1 AND h.name NOT LIKE '%Module%'
+                THEN 1 ELSE 0 END) AS Un,
+                SUM(CASE WHEN h.state = 0 AND h.enabled = 1 AND h.name NOT LIKE '%Module%'
+                THEN 1 ELSE 0 END) AS Up,
+                SUM(CASE WHEN h.state = 4 AND h.enabled = 1 AND h.name NOT LIKE '%Module%'
+                THEN 1 ELSE 0 END) AS Pend
+                FROM hosts h WHERE h.instance_id IN (" . $queryPoller . ");";
 
-$querySts = "SELECT SUM(CASE WHEN s.state = 2 AND s.enabled = 1 AND h.name NOT LIKE '%Module%'
-            THEN 1 ELSE 0 END) AS Cri,
-            SUM(CASE WHEN s.state = 1 AND s.enabled = 1 AND h.name NOT LIKE '%Module%'
-            THEN 1 ELSE 0 END) AS Wa,
-            SUM(CASE WHEN s.state = 0 AND s.enabled = 1 AND h.name NOT LIKE '%Module%'
-            THEN 1 ELSE 0 END) AS Ok,
-            SUM(CASE WHEN s.state = 4 AND s.enabled = 1 AND h.name NOT LIKE '%Module%'
-            THEN 1 ELSE 0 END) AS Pend,
-            SUM(CASE WHEN s.state = 3 AND s.enabled = 1 AND h.name NOT LIKE '%Module%'
-            THEN 1 ELSE 0 END) AS Unk
-            FROM services s, hosts h
-            WHERE h.host_id = s.host_id AND h.instance_id IN (" . $queryPoller . ");";
+    $querySts = "SELECT SUM(CASE WHEN s.state = 2 AND s.enabled = 1 AND h.name NOT LIKE '%Module%'
+                THEN 1 ELSE 0 END) AS Cri,
+                SUM(CASE WHEN s.state = 1 AND s.enabled = 1 AND h.name NOT LIKE '%Module%'
+                THEN 1 ELSE 0 END) AS Wa,
+                SUM(CASE WHEN s.state = 0 AND s.enabled = 1 AND h.name NOT LIKE '%Module%'
+                THEN 1 ELSE 0 END) AS Ok,
+                SUM(CASE WHEN s.state = 4 AND s.enabled = 1 AND h.name NOT LIKE '%Module%'
+                THEN 1 ELSE 0 END) AS Pend,
+                SUM(CASE WHEN s.state = 3 AND s.enabled = 1 AND h.name NOT LIKE '%Module%'
+                THEN 1 ELSE 0 END) AS Unk
+                FROM services s, hosts h
+                WHERE h.host_id = s.host_id AND h.instance_id IN (" . $queryPoller . ");";
 
-$res = $db->prepare($querySth);
-$res2 = $db->prepare($querySts);
-foreach ($mainQueryParameters as $parameter) {
-    $res->bindValue($parameter['parameter'], $parameter['value'], $parameter['type']);
-    $res2->bindValue($parameter['parameter'], $parameter['value'], $parameter['type']);
-}
-$res->execute();
-$res2->execute();
+                $res = $db->prepare($querySth);
+                $res2 = $db->prepare($querySts);
+                foreach ($mainQueryParameters as $parameter) {
+                    $res->bindValue($parameter['parameter'], $parameter['value'], $parameter['type']);
+                    $res2->bindValue($parameter['parameter'], $parameter['value'], $parameter['type']);
+                }
+                $res->execute();
+                $res2->execute();
 
-while ($row = $res->fetchRow()) {
-  $dataSth[] = $row;
-}
+                while ($row = $res->fetchRow()) {
+                    $dataSth[] = $row;
+                }
 
-while ($row = $res2->fetchRow()) {
-  $dataSts[] = $row;
+                while ($row = $res2->fetchRow()) {
+                    $dataSts[] = $row;
+                }
 }
 
 $avg_l = $preferences['avg-l'];
