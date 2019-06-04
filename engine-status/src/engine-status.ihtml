@@ -5,7 +5,7 @@
         <link href="../../Themes/Centreon-2/Color/blue_css.php" rel="stylesheet" text="text/css"/>
         {literal}
         <style type="text/css">
-          .ListTable {font-size:11px;border-color: #BFD0E2;}                                                                                                                               
+          .ListTable {font-size:11px;border-color: #BFD0E2;}
         </style>
         <style>
           @import url('../../Themes/Centreon-2/style.css');
@@ -45,7 +45,7 @@
 			<td class="ListColLeft">Unknown</td>
 			<td class="ListColLeft"><span class="badge service_unknown">{$dataSts[0].Unk}</span></td>
 			<td class="ListColLeft">Pending</td>
-			<td class="ListColLeft"><span class="badge pending">{$dataSth[0].Pend}</span></td>	
+			<td class="ListColLeft"><span class="badge pending">{$dataSth[0].Pend}</span></td>
 	            </tr>
 		    <tr>
 		        <td class="ListColLeft">Pending</td>
@@ -67,17 +67,17 @@
 					{if $dataLat[0].h_moy > $avg_l}
 	      	  	          <tr class="list_down">
 		    		      <td class="ListColLeft">hosts</td>
-				      <td class="ListColCenter">{$dataLat[0].h_moy}s 
+				      <td class="ListColCenter">{$dataLat[0].h_moy}s
 			 	      {if $dataLat[0].h_max > $max_e}
  			    	      	  <span style="background-color: #ffaec1;">(Max : {$dataLat[0].h_max}s)</span></td>
 			              {else}
 					(Max : {$dataLat[0].h_max}s)</td>
 			              {/if}
 	    			 </tr>
-				      {else}  
+				      {else}
 	      			 <tr class="list_one">
 			   	     <td class="ListColLeft">hosts</td>
-			      	     <td class="ListColCenter">{$dataLat[0].h_moy}s 
+			      	     <td class="ListColCenter">{$dataLat[0].h_moy}s
 			             {if $dataLat[0].h_max > $max_e}
  			    	     	 <span style="background-color: #ffaec1;">(Max : {$dataLat[0].h_max}s)</span></td>
 			             {else}
@@ -88,7 +88,7 @@
 	       			  {if $dataLat[0].s_moy > $avg_l}
 	       	   		  <tr class="list_down">
 				      <td class="ListColLeft">services</td>
-				      <td class="ListColCenter">{$dataLat[0].s_moy}s 
+				      <td class="ListColCenter">{$dataLat[0].s_moy}s
 				  {if $dataLat[0].s_max > $max_e}
  			    	      <span style="background-color: #ffaec1;">(Max : {$dataLat[0].s_max}s)</span></td>
 			    	  {else}
@@ -98,7 +98,7 @@
 				  {else}
 	      			  <tr class="list_two">
 				      <td class="ListColLeft">services</td>
-				      <td class="ListColCenter">{$dataLat[0].s_moy}s 
+				      <td class="ListColCenter">{$dataLat[0].s_moy}s
 			 	      {if $dataLat[0].s_max > $max_e}
  			    	      	  <span style="background-color: #ffaec1;">(Max : {$dataLat[0].s_max}s)</span></td>
 			              {else}
@@ -110,7 +110,7 @@
 	    </td>
 		<td>
 		   <table class="styleTable ListTable">
-           	   	  <a href="/centreon/main.php?p=10201" target="_blank"><h4>Check the execution time</h4></a> 
+           	   	  <a href="/centreon/main.php?p=10201" target="_blank"><h4>Check the execution time</h4></a>
 	       		     <tr class="ListHeader">
 			     	 <td class="ListColHeaderLeft">type</td>
                         	 <td class="ListColHeaderCenter">AVG</td>
@@ -119,7 +119,7 @@
 	      		     <tr class="list_down">
 			     	 <td class="ListColLeft">hosts</td>
 				 <td class="ListColCenter">{$dataEx[0].h_moy}s (Max : {$dataEx[0].h_max}s)</td>
-                             </tr>	
+                             </tr>
 	                     {else}
 	                     <tr class="list_one">
 			     	 <td class="ListColLeft">hosts</td>
@@ -156,5 +156,5 @@
 </script>
 </body>
 </html>
-	 
+
 
