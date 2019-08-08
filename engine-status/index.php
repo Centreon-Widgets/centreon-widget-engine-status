@@ -83,7 +83,7 @@ $db = new CentreonDB("centstorage");
 $res = $db->query(
     "SELECT T1.name, T1.instance_id as instance, T2.instance_id
     FROM instances T1, hosts T2
-    WHERE T1.name like '" . $preferences['poller'] . "';"
+    WHERE T1.instance_id like '" . $preferences['poller'] . "';"
 );
 $idP = 0;
 while ($row = $res->fetch()) {
