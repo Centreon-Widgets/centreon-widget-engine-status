@@ -49,9 +49,13 @@ if (!isset($_SESSION['centreon']) || !isset($_REQUEST['widgetId'])) {
     exit;
 }
 $centreon = $_SESSION['centreon'];
-$widgetId = $_REQUEST['widgetId'];
+$widgetId = filter_var($_REQUEST['widgetId'],FILTER_VALIDATE_INT);
 
 try {
+    if($widgetId === false) {
+        throw new \InvalidArgumentException('Widget ID must be an integer');
+    }
+
     $db_centreon = $dependencyInjector['configuration_db'];
     $db = $dependencyInjector['realtime_db'];
 
