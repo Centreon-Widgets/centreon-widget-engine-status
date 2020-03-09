@@ -52,7 +52,7 @@ $centreon = $_SESSION['centreon'];
 $widgetId = filter_var($_REQUEST['widgetId'],FILTER_VALIDATE_INT);
 
 try {
-    if($widgetId === false) {
+    if ($widgetId === false) {
         throw new \InvalidArgumentException('Widget ID must be an integer');
     }
 
@@ -67,6 +67,11 @@ try {
 
     $widgetObj = new CentreonWidget($centreon, $db_centreon);
     $preferences = $widgetObj->getWidgetPreferences($widgetId);
+
+    if (empty($preferences['poller'] || (int) $preferences['poller'] === 0)) {
+        throw new \Exception('Pollers preferences can\'t be empty');
+    }
+
     $autoRefresh = 0;
     $autoRefresh = $preferences['autoRefresh'];
 } catch (Exception $e) {
@@ -84,81 +89,76 @@ $dataSth = array();
 $dataSts = array();
 $db = new CentreonDB("centstorage");
 
-$idP = 0;
-if (!empty($preferences['poller'])) {
-    $idP = (int) $preferences['poller'];
+$idP = (int) $preferences['poller'];
+
+$sql = "SELECT
+    Max(T1.latency) as h_max,
+    AVG(T1.latency) as h_moy,
+    Max(T2.latency) as s_max,
+    AVG(T2.latency) as s_moy
+    FROM hosts T1, services T2
+    WHERE T1.instance_id = :idP AND T1.host_id = T2.host_id AND T2.enabled = '1' and T2.check_type = '0'";
+
+$res = $db->prepare($sql);
+$res->bindValue(':idP', $idP, PDO::PARAM_INT);
+$res->execute();
+while ($row = $res->fetch()) {
+    $row['h_max'] = round($row['h_max'], 3);
+    $row['h_moy'] = round($row['h_moy'], 3);
+    $row['s_max'] = round($row['s_max'], 3);
+    $row['s_moy'] = round($row['s_moy'], 3);
+    $dataLat[] = $row;
 }
 
-if($idP !== 0) {
-    $sql = "SELECT
-        Max(T1.latency) as h_max,
-        AVG(T1.latency) as h_moy,
-        Max(T2.latency) as s_max,
-        AVG(T2.latency) as s_moy
-        FROM hosts T1, services T2
-        WHERE T1.instance_id = :idP AND T1.host_id = T2.host_id AND T2.enabled = '1' and T2.check_type = '0';";
+$sql = "SELECT
+    Max(T1.execution_time) as h_max,
+    AVG(T1.execution_time) as h_moy,
+    Max(T2.execution_time) as s_max,
+    AVG(T2.execution_time) as s_moy
+    FROM hosts T1, services T2
+    WHERE T1.instance_id = :idP AND T1.host_id = T2.host_id AND T2.enabled = '1' and T2.check_type = '0'";
 
-    $res = $db->prepare($sql);
-    $res->bindValue(':idP',$idP,PDO::PARAM_INT);
-    $res->execute();
-    while ($row = $res->fetch()) {
-        $row['h_max'] = round($row['h_max'], 3);
-        $row['h_moy'] = round($row['h_moy'], 3);
-        $row['s_max'] = round($row['s_max'], 3);
-        $row['s_moy'] = round($row['s_moy'], 3);
-        $dataLat[] = $row;
-    }
-    
-    $sql = "SELECT
-        Max(T1.execution_time) as h_max,
-        AVG(T1.execution_time) as h_moy,
-        Max(T2.execution_time) as s_max,
-        AVG(T2.execution_time) as s_moy
-        FROM hosts T1, services T2
-        WHERE T1.instance_id = :idP AND T1.host_id = T2.host_id AND T2.enabled = '1' and T2.check_type = '0';";
-
-    $res = $db->prepare($sql);
-    $res->bindValue(':idP',$idP,PDO::PARAM_INT);
-    $res->execute();
-    while ($row = $res->fetch()) {
-        $row['h_max'] = round($row['h_max'], 3);
-        $row['h_moy'] = round($row['h_moy'], 3);
-        $row['s_max'] = round($row['s_max'], 3);
-        $row['s_moy'] = round($row['s_moy'], 3);
-        $dataEx[] = $row;
-    }
-    
-    $sql = "SELECT
-        SUM(CASE WHEN h.state = 1 AND h.enabled = 1 AND h.name not like '%Module%' then 1 else 0 end) as Dow,
-        SUM(CASE WHEN h.state = 2 AND h.enabled = 1 AND h.name not like '%Module%' then 1 else 0 end) as Un,
-        SUM(CASE WHEN h.state = 0 AND h.enabled = 1 AND h.name not like '%Module%' then 1 else 0 end) as Up,
-        SUM(CASE WHEN h.state = 4 AND h.enabled = 1 AND h.name not like '%Module%' then 1 else 0 end) as Pend
-        FROM hosts h
-        WHERE h.instance_id = :idP;";
-
-    $res = $db->prepare($sql);
-    $res->bindValue(':idP',$idP,PDO::PARAM_INT);
-    $res->execute();
-    while ($row = $res->fetch()) {
-        $dataSth[] = $row;
-    }
-    $sql = "SELECT
-        SUM(CASE WHEN s.state = 2 AND s.enabled = 1 AND h.name not like '%Module%' then 1 else 0 end) as Cri,
-        SUM(CASE WHEN s.state = 1 AND s.enabled = 1 AND h.name not like '%Module%' then 1 else 0 end) as Wa,
-        SUM(CASE WHEN s.state = 0 AND s.enabled = 1 AND h.name not like '%Module%' then 1 else 0 end) as Ok,
-        SUM(CASE WHEN s.state = 4 AND s.enabled = 1 AND h.name not like '%Module%' then 1 else 0 end) as Pend,
-        SUM(CASE WHEN s.state = 3 AND s.enabled = 1 AND h.name not like '%Module%' then 1 else 0 end) as Unk
-        FROM services s, hosts h
-        WHERE h.host_id = s.host_id AND h.instance_id = :idP;";
-
-    $res = $db->prepare($sql);
-    $res->bindValue(':idP',$idP,PDO::PARAM_INT);
-    $res->execute();
-    while ($row = $res->fetch()) {
-        $dataSts[] = $row;
-    }
+$res = $db->prepare($sql);
+$res->bindValue(':idP', $idP, PDO::PARAM_INT);
+$res->execute();
+while ($row = $res->fetch()) {
+    $row['h_max'] = round($row['h_max'], 3);
+    $row['h_moy'] = round($row['h_moy'], 3);
+    $row['s_max'] = round($row['s_max'], 3);
+    $row['s_moy'] = round($row['s_moy'], 3);
+    $dataEx[] = $row;
 }
 
+$sql = "SELECT
+    SUM(CASE WHEN h.state = 1 AND h.enabled = 1 AND h.name not like '%Module%' then 1 else 0 end) as Dow,
+    SUM(CASE WHEN h.state = 2 AND h.enabled = 1 AND h.name not like '%Module%' then 1 else 0 end) as Un,
+    SUM(CASE WHEN h.state = 0 AND h.enabled = 1 AND h.name not like '%Module%' then 1 else 0 end) as Up,
+    SUM(CASE WHEN h.state = 4 AND h.enabled = 1 AND h.name not like '%Module%' then 1 else 0 end) as Pend
+    FROM hosts h
+    WHERE h.instance_id = :idP";
+
+$res = $db->prepare($sql);
+$res->bindValue(':idP', $idP, PDO::PARAM_INT);
+$res->execute();
+while ($row = $res->fetch()) {
+    $dataSth[] = $row;
+}
+
+$sql = "SELECT
+    SUM(CASE WHEN s.state = 2 AND s.enabled = 1 AND h.name not like '%Module%' then 1 else 0 end) as Cri,
+    SUM(CASE WHEN s.state = 1 AND s.enabled = 1 AND h.name not like '%Module%' then 1 else 0 end) as Wa,
+    SUM(CASE WHEN s.state = 0 AND s.enabled = 1 AND h.name not like '%Module%' then 1 else 0 end) as Ok,
+    SUM(CASE WHEN s.state = 4 AND s.enabled = 1 AND h.name not like '%Module%' then 1 else 0 end) as Pend,
+    SUM(CASE WHEN s.state = 3 AND s.enabled = 1 AND h.name not like '%Module%' then 1 else 0 end) as Unk
+    FROM services s, hosts h
+    WHERE h.host_id = s.host_id AND h.instance_id = :idP";
+
+$res = $db->prepare($sql);
+$res->bindValue(':idP', $idP, PDO::PARAM_INT);
+$res->execute();
+while ($row = $res->fetch()) {
+    $dataSts[] = $row;
+}
 
 $avg_l = $preferences['avg-l'];
 $avg_e = $preferences['avg-e'];
