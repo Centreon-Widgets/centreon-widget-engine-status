@@ -49,7 +49,7 @@ if (!isset($_SESSION['centreon']) || !isset($_REQUEST['widgetId'])) {
     exit;
 }
 $centreon = $_SESSION['centreon'];
-$widgetId = filter_var($_REQUEST['widgetId'],FILTER_VALIDATE_INT);
+$widgetId = filter_var($_REQUEST['widgetId'], FILTER_VALIDATE_INT);
 
 try {
     if ($widgetId === false) {
