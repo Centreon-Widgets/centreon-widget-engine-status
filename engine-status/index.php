@@ -69,7 +69,7 @@ try {
     $preferences = $widgetObj->getWidgetPreferences($widgetId);
 
     if (empty($preferences['poller'] || (int) $preferences['poller'] === 0)) {
-        throw new \Exception('Pollers preferences can\'t be empty');
+        throw new \InvalidArgumentException('Pollers preferences can\'t be empty');
     }
 
     $autoRefresh = 0;
