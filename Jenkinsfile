@@ -74,6 +74,7 @@ stage('Unit tests') {
 
         recordIssues(
           enabledForFailure: true,
+          failOnError: true,
           ignoreFailedBuilds: false,
           qualityGates: [[threshold: 1, type: 'NEW', unstable: false]],
           tools: [
