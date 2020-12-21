@@ -3,7 +3,6 @@
     <description>Custom rules defined by Centreon</description>
 
     <exclude-pattern>vendor</exclude-pattern>
-    <exclude-pattern>*\.(?!(php$))</exclude-pattern>
 
     <rule ref="PSR12"/>
     <rule ref="Squiz.WhiteSpace.SuperfluousWhitespace">
