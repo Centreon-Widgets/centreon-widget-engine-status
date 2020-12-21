@@ -74,7 +74,7 @@ stage('Unit tests') {
 
         recordIssues(
           enabledForFailure: true,
-          aggregatingResults: true,
+          ignoreFailedBuilds: false,
           qualityGates: [[threshold: 1, type: 'NEW', unstable: false]],
           tools: [
             checkStyle(pattern: 'codestyle-be.xml')
