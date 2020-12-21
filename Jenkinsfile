@@ -41,7 +41,7 @@ stage('Source') {
 }
 
 try {
-stage('Unit tests') {
+  stage('Unit tests') {
     parallel 'centos7': {
       node {
         sh 'setup_centreon_build.sh'
@@ -127,10 +127,10 @@ stage('Unit tests') {
 } catch(e) {
   if ((env.BUILD == 'RELEASE') || (env.BUILD == 'REFERENCE')) {
     slackSend channel: "#monitoring-metrology",
-        color: "#F30031",
-        message: "*FAILURE*: `CENTREON WIDGET ENGINE STATUS` <${env.BUILD_URL}|build #${env.BUILD_NUMBER}> on branch ${env.BRANCH_NAME}\n" +
-            "*COMMIT*: <https://github.com/centreon/centreon-widget-engine-status/commit/${source.COMMIT}|here> by ${source.COMMITTER}\n" +
-            "*INFO*: ${e}"
+      color: "#F30031",
+      message: "*FAILURE*: `CENTREON WIDGET ENGINE STATUS` <${env.BUILD_URL}|build #${env.BUILD_NUMBER}> on branch ${env.BRANCH_NAME}\n" +
+        "*COMMIT*: <https://github.com/centreon/centreon-widget-engine-status/commit/${source.COMMIT}|here> by ${source.COMMITTER}\n" +
+        "*INFO*: ${e}"
   }
 
   currentBuild.result = 'FAILURE'
